@@ -1,6 +1,9 @@
+const API_BASE_URL = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
+const apiUrl = (path) => `${API_BASE_URL}${path}`;
+
 export async function submitRepair(payload) {
   let res;
-  try { res = await fetch('/api/repairs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }); }
+  try { res = await fetch(apiUrl('/api/repairs'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }); }
   catch { throw { message: 'Cannot reach the server. Check your connection and try again.' }; }
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw { message: data.message || 'Request failed.', errors: data.errors };
@@ -8,7 +11,7 @@ export async function submitRepair(payload) {
 }
 
 // ---- admin ----
-const A = '/api/admin';
+const A = apiUrl('/api/admin');
 const tok = () => sessionStorage.getItem('adminToken');
 async function call(path, opts = {}) {
   let res;
