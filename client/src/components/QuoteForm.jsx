@@ -1,80 +1,63 @@
 import { useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { devices, services } from '../data/content.js';
+import { ArrowUpRight, CheckCircle2, Wrench } from 'lucide-react';
+import { devices } from '../data/content.js';
 import { submitRepair } from '../services/api.js';
-
-const STEPS = ['Device', 'Issue', 'Your details', 'Review'];
-const rules = [
-  { category: (v) => !v && 'Choose a device type', brand: (v) => !v.trim() && 'Enter the brand', model: (v) => !v.trim() && 'Enter the model' },
-  { issue: (v) => !v && 'Choose an issue' },
-  { name: (v) => v.trim().length < 2 && 'Enter your name', phone: (v) => !/^[+]?[\d\s-]{10,14}$/.test(v) && 'Enter a valid phone number',
-    email: (v) => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) && 'Enter a valid email', location: (v) => !v.trim() && 'Enter your address or area' },
-  {},
-];
-
-function Field({ k, label, v, err, set, type = 'text', ...p }) {
-  return (
-    <label className="field">{label}
-      <input type={type} value={v[k]} onChange={set(k)} aria-invalid={!!err[k]} aria-describedby={err[k] ? `${k}-e` : undefined} {...p} />
-      {err[k] && <span id={`${k}-e`} className="err" role="alert">{err[k]}</span>}
-    </label>
-  );
-}
+import { normalizeIndianPhone, validateRepair } from '../../../shared/repair-validation.mjs';
+import { issuesForDevice } from '../../../shared/repair-issues.mjs';
+import { productsForDevice } from '../../../shared/devices.mjs';
 
 export default function QuoteForm() {
   const { state } = useLocation();
-  const [step, setStep] = useState(0);
-  const [v, setV] = useState({ category: state?.category || '', brand: '', model: state?.model || '', issue: state?.issue || '', name: '', phone: '', email: '', location: '', date: '', time: '', details: '' });
-  const [err, setErr] = useState({});
-  const [status, setStatus] = useState('idle'); // idle | loading | success | error
-  const [msg, setMsg] = useState('');
-  const set = (k) => (e) => { setV({ ...v, [k]: e.target.value }); setErr({ ...err, [k]: undefined }); };
-  const fp = { v, err, set };
-
-  const next = () => {
-    const e = {};
-    for (const [k, fn] of Object.entries(rules[step])) { const m = fn(v[k]); if (m) e[k] = m; }
-    setErr(e);
-    if (!Object.keys(e).length) setStep(step + 1);
+  const [values, setValues] = useState(() => ({ name: '', product: productsForDevice(state?.category).includes(state?.model) ? state.model : '', phone: '', category: state?.category || '', issue: issuesForDevice(state?.category).some((issue) => issue.name === state?.issue) ? state.issue : '', email: '' }));
+  const [errors, setErrors] = useState({});
+  const [status, setStatus] = useState('idle');
+  const [message, setMessage] = useState('');
+  const change = (key) => (event) => {
+    const value = event.target.value;
+    setValues((previous) => ({
+      ...previous, [key]: value,
+      ...(key === 'category' && !issuesForDevice(value).some((issue) => issue.name === previous.issue) ? { issue: '' } : {}),
+      ...(key === 'category' && !productsForDevice(value).includes(previous.product) ? { product: '' } : {}),
+    }));
+    setErrors((previous) => ({ ...previous, [key]: undefined, ...(key === 'category' ? { issue: undefined, product: undefined } : {}) }));
   };
-  const submit = async () => {
-    setStatus('loading'); setMsg('');
-    try { await submitRepair(v); setStatus('success'); }
-    catch (e) { setStatus('error'); setMsg(e.message); if (e.errors) { setErr(e.errors); setStep(2); } }
+  const submit = async (event) => {
+    event.preventDefault();
+    if (status === 'loading') return;
+    const nextErrors = validateRepair(values);
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length) {
+      event.currentTarget.querySelector(`[name="${Object.keys(nextErrors)[0]}"]`)?.focus();
+      return;
+    }
+    setStatus('loading'); setMessage('');
+    try {
+      await submitRepair({ ...values, phone: normalizeIndianPhone(values.phone) });
+      setStatus('success');
+    } catch (error) {
+      setStatus('error'); setMessage(error.message || 'Unable to send your request. Please try again.');
+      if (error.errors) setErrors(error.errors);
+    }
   };
+  const inputProps = (key) => ({ name: key, value: values[key], onChange: change(key), required: true, 'aria-invalid': !!errors[key], 'aria-describedby': errors[key] ? `booking-${key}-error` : key === 'phone' ? 'booking-phone-hint' : undefined });
+  const error = (key) => errors[key] && <span id={`booking-${key}-error`} className="err" role="alert">{errors[key]}</span>;
 
-  if (status === 'success') return <div className="form-card" role="status"><h2>Request received</h2><p>We saved your request and will contact you on {v.phone} or {v.email}.</p></div>;
+  if (status === 'success') return <div className="booking-glass booking-success" role="status"><CheckCircle2 size={46} /><h2>Request sent!</h2><p>Your repair request has been emailed to our team. We’ll contact you on {values.phone} or {values.email}.</p></div>;
 
-  return (
-    <form className="form-card" onSubmit={(e) => e.preventDefault()} noValidate>
-      <ol className="progress" aria-label="Progress">{STEPS.map((s, i) => <li key={s} aria-current={i === step ? 'step' : undefined} className={i <= step ? 'done' : ''}>{s}</li>)}</ol>
-      <div key={step} className="step-pane">
-        {step === 0 && <>
-          <label className="field">Device type
-            <select value={v.category} onChange={set('category')} aria-invalid={!!err.category}><option value="">Select…</option>{devices.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}</select>
-            {err.category && <span className="err" role="alert">{err.category}</span>}</label>
-          <Field k="brand" label="Brand" {...fp} /><Field k="model" label="Model" {...fp} />
-        </>}
-        {step === 1 && <>
-          <label className="field">Issue
-            <select value={v.issue} onChange={set('issue')} aria-invalid={!!err.issue}><option value="">Select…</option>
-              {services.filter((s) => !v.category || s.for.includes(v.category)).map((s) => <option key={s.id}>{s.name}</option>)}</select>
-            {err.issue && <span className="err" role="alert">{err.issue}</span>}</label>
-          <label className="field">Details (optional)<textarea rows="4" maxLength="1000" value={v.details} onChange={set('details')} /></label>
-        </>}
-        {step === 2 && <>
-          <Field k="name" label="Full name" autoComplete="name" {...fp} /><Field k="phone" label="Phone" type="tel" autoComplete="tel" {...fp} />
-          <Field k="email" label="Email" type="email" autoComplete="email" {...fp} /><Field k="location" label="Service location" autoComplete="street-address" {...fp} />
-          <div className="two"><Field k="date" label="Preferred date (optional)" type="date" {...fp} /><Field k="time" label="Preferred time (optional)" type="time" {...fp} /></div>
-        </>}
-        {step === 3 && <dl className="review">{Object.entries(v).filter(([, x]) => x).map(([k, x]) => <div key={k}><dt>{k}</dt><dd>{x}</dd></div>)}</dl>}
+  return <form className="booking-glass" onSubmit={submit} noValidate>
+    <div className="booking-form-heading"><span className="booking-icon"><Wrench size={22} /></span><div><h2>Tell us what needs fixing</h2><p>Six details, one simple request.</p></div></div>
+    <fieldset disabled={status === 'loading'} className="booking-fields">
+      <div className="booking-grid">
+        <label className="field">Full name<input {...inputProps('name')} autoComplete="name" maxLength={80} placeholder="Your full name" />{error('name')}</label>
+        <label className="field">Device type<select {...inputProps('category')}><option value="">Choose your device</option>{devices.map((device) => <option key={device.id} value={device.id}>{device.name}</option>)}</select>{error('category')}</label>
+        <label className="field">Product<select {...inputProps('product')} disabled={!values.category}><option value="">{values.category ? 'Choose your product' : 'Choose a device type first'}</option>{productsForDevice(values.category).map((product) => <option key={product} value={product}>{product}</option>)}</select>{error('product')}</label>
+        <label className="field">Phone number<input {...inputProps('phone')} type="tel" autoComplete="tel" maxLength={24} placeholder="98765 43210" /><span className="booking-hint" id="booking-phone-hint">Indian mobile number · +91 is optional</span>{error('phone')}</label>
+        <label className="field booking-full">Email address<input {...inputProps('email')} type="email" autoComplete="email" maxLength={254} placeholder="you@example.com" />{error('email')}</label>
+        <label className="field booking-full">Issue<select {...inputProps('issue')}><option value="">Choose an issue</option>{issuesForDevice(values.category).map((issue) => <option key={issue.name} value={issue.name}>{issue.label || issue.name}</option>)}</select>{error('issue')}</label>
       </div>
-      {status === 'error' && <p className="err banner" role="alert">{msg}</p>}
-      <div className="row between">
-        <button type="button" className="btn btn-ghost" disabled={!step || status === 'loading'} onClick={() => setStep(step - 1)}>Back</button>
-        {step < 3 ? <button type="button" className="btn btn-primary" onClick={next}>Continue</button>
-          : <button type="button" className="btn btn-primary" disabled={status === 'loading'} onClick={submit}>{status === 'loading' ? 'Sending…' : 'Send request'}</button>}
-      </div>
-    </form>
-  );
+    </fieldset>
+    {status === 'error' && <p className="err banner" role="alert">{message}</p>}
+    <div className="booking-submit"><p>We’ll contact you to discuss your repair.</p><button type="submit" className="btn booking-button" disabled={status === 'loading'}>{status === 'loading' ? 'Sending…' : 'Book repair'}<ArrowUpRight size={18} aria-hidden="true" /></button></div>
+  </form>;
 }

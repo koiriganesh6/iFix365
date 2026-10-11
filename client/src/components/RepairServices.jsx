@@ -6,7 +6,8 @@ export default function RepairServices({ limit }) {
   const [f, setF] = useState('all');
   const list = services.filter((s) => f === 'all' || s.for.includes(f)).slice(0, limit || 99);
   return (
-    <section className="section container">
+    <section className="section container repair-section">
+      <p className="section-eyebrow">SMALL FIXES. BIG DIFFERENCE.</p>
       <h2>Repairs we offer</h2>
       {!limit && <div className="chips" role="group" aria-label="Filter by device">
         {[{ id: 'all', name: 'All devices' }, ...devices].map((d) => <button key={d.id} className={`chip ${f === d.id ? 'on' : ''}`} aria-pressed={f === d.id} onClick={() => setF(d.id)}>{d.name}</button>)}

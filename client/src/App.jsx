@@ -5,8 +5,7 @@ import Footer from './components/Footer.jsx';
 import Home from './pages/Home.jsx';
 import Services from './pages/Services.jsx';
 import Book from './pages/Book.jsx';
-import WhatsAppFab from './components/WhatsAppFab.jsx';
-import Admin from './pages/Admin.jsx';
+import ContactFab from './components/ContactFab.jsx';
 import Info from './pages/Info.jsx';
 
 export default function App() {
@@ -22,10 +21,9 @@ export default function App() {
         <Route path="/book" element={<Book />} />
         <Route path="/about" element={<Info kind="about" />} />
         <Route path="/contact" element={<Info kind="contact" />} />
-        <Route path="/admin" element={<Admin />} />
         <Route path="*" element={<Info kind="404" />} />
       </Routes>
     </main>
-    <Footer /><WhatsAppFab />
+    <Footer /><ContactFab />
   </>);
 }

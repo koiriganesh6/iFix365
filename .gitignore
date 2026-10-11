@@ -1,3 +1,4 @@
 client/.env
 client/.env.local
 client/.env.*.local
+server/.env

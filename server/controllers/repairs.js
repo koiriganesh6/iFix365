@@ -1,15 +1,28 @@
-import Repair from '../models/Repair.js';
-const FIELDS = ['category','brand','model','issue','name','phone','email','location','date','time','details'];
+import { sendAdminEmail } from '../services/resend.js';
+import { buildNotificationEmail } from '../services/email-template.js';
+import { normalizeIndianPhone, validateRepair } from '../../shared/repair-validation.mjs';
+
+const FIELDS = ['name', 'product', 'phone', 'category', 'issue', 'email'];
+const DEVICE_NAMES = { iphone: 'iPhone', android: 'Android phones', macbook: 'MacBook', windows: 'Windows laptops', tablet: 'iPad and tablets', watch: 'Smartwatches' };
+
 export async function createRepair(req, res, next) {
+  const body = req.body && typeof req.body === 'object' ? req.body : {};
+  const d = {};
+  for (const key of FIELDS) d[key] = typeof body[key] === 'string' ? body[key].trim() : '';
+  const errors = validateRepair(d);
+  if (Object.keys(errors).length) return res.status(400).json({ message: 'Please fix the highlighted fields.', errors });
+  d.phone = normalizeIndianPhone(d.phone);
+  d.email = d.email.toLowerCase();
+  const fields = [['Name', d.name], ['Product', d.product], ['Phone', d.phone], ['Device type', DEVICE_NAMES[d.category]], ['Email', d.email]];
   try {
-    const d = {};
-    for (const k of FIELDS) d[k] = typeof req.body[k] === 'string' ? req.body[k].trim() : '';
-    const errors = {};
-    for (const k of ['category','brand','model','issue','name','location']) if (!d[k]) errors[k] = 'Required';
-    if (!/^[+]?[\d\s-]{10,14}$/.test(d.phone)) errors.phone = 'Enter a valid phone number';
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.email)) errors.email = 'Enter a valid email address';
-    if (Object.keys(errors).length) return res.status(400).json({ message: 'Please fix the highlighted fields.', errors });
-    const doc = await Repair.create(d);
-    res.status(201).json({ id: doc._id });
-  } catch (e) { next(e); }
+    await sendAdminEmail({
+      subject: 'New repair booking request',
+      replyTo: d.email,
+      html: buildNotificationEmail({ title: 'New repair booking request', fields, messageLabel: 'Issue', message: d.issue, replyTo: d.email }),
+      text: ['New repair booking request', '', ...fields.map(([label, value]) => `${label}: ${value}`), '', 'Issue:', d.issue].join('\n'),
+    });
+    return res.status(201).json({ ok: true });
+  } catch (error) {
+    return next(error);
+  }
 }

@@ -1,33 +1,22 @@
 const API_BASE_URL = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
 const apiUrl = (path) => `${API_BASE_URL}${path}`;
 
-export async function submitRepair(payload) {
-  let res;
-  try { res = await fetch(apiUrl('/api/repairs'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }); }
-  catch { throw { message: 'Cannot reach the server. Check your connection and try again.' }; }
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw { message: data.message || 'Request failed.', errors: data.errors };
-  return data; // resolves only when the server confirmed the save (201)
-}
+async function post(path, payload) {
+  let response;
+  try {
+    response = await fetch(apiUrl(path), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  } catch {
+    throw { message: 'Cannot reach the server. Check your connection and try again.' };
+  }
 
-// ---- admin ----
-const A = apiUrl('/api/admin');
-const tok = () => sessionStorage.getItem('adminToken');
-async function call(path, opts = {}) {
-  let res;
-  try { res = await fetch(A + path, { ...opts, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tok()}` } }); }
-  catch { throw { message: 'Cannot reach the server.' }; }
-  const data = await res.json().catch(() => ({}));
-  if (res.status === 401 && tok()) sessionStorage.removeItem('adminToken');
-  if (!res.ok) throw { message: data.message || 'Request failed.', status: res.status };
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw { message: data.message || 'Request failed.', errors: data.errors };
   return data;
 }
-export const adminLogin = async (password) => {
-  const d = await call('/login', { method: 'POST', body: JSON.stringify({ password }) });
-  sessionStorage.setItem('adminToken', d.token);
-};
-export const adminLogout = () => sessionStorage.removeItem('adminToken');
-export const adminLoggedIn = () => Boolean(tok());
-export const adminList = () => call('/repairs');
-export const adminStatus = (id, status) => call(`/repairs/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) });
-export const adminDelete = (id) => call(`/repairs/${id}`, { method: 'DELETE' });
+
+export const submitRepair = (payload) => post('/api/repairs', payload);
+export const submitContact = (payload) => post('/api/contact', payload);

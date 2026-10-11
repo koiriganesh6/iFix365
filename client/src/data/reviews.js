@@ -13,7 +13,7 @@ export const reviews = [
   ['Meera T.', 'iPhone 11', 4, 'Good work on the camera repair. Photos are sharp again.'],
   ['Suresh G.', 'MacBook Pro', 5, 'Honest advice about what needed fixing and what did not. Appreciated that.'],
   ['Fatima A.', 'Redmi Note', 5, 'Dropped my phone in water and they managed to save it. Very relieved.'],
-  ['Nikhil D.', 'iPhone 14', 5, 'Easy booking and quick replies on WhatsApp. Phone came back working perfectly.'],
+  ['Nikhil D.', 'iPhone 14', 5, 'Easy booking and quick replies from the team. Phone came back working perfectly.'],
   ['Lakshmi V.', 'Lenovo laptop', 5, 'Software problems sorted and the laptop is fast again.'],
   ['Aditya C.', 'Google Pixel', 4, 'Battery replaced without fuss. Would recommend.'],
   ['Pooja H.', 'iPad Air', 5, 'Charging issue fixed the same visit. Friendly and professional.'],

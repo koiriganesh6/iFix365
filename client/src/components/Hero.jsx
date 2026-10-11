@@ -5,6 +5,7 @@ export default function Hero() {
   return (
     <div className="hero-wrap"><section className="hero container">
       <div>
+        <p className="hero-eyebrow">A FRESH START FOR YOUR EVERYDAY TECH</p>
         <h1>Expert repairs. Exceptional care.</h1>
         <p>Phones, laptops, tablets and watches, repaired by people who test everything before it goes back to you.</p>
         <div className="row">
