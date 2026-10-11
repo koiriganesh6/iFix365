@@ -1,0 +1,28 @@
+// SAMPLE reviews for design preview only. Replace with real customer reviews before launch.
+// Format: [name, device, rating, text]
+export const reviews = [
+  ['Rahul S.', 'iPhone 13', 5, 'Cracked screen replaced and the phone feels brand new. Clear explanation before starting.'],
+  ['Priya M.', 'MacBook Air', 5, 'My laptop kept shutting down. They found the battery issue and fixed it without any pressure to buy extras.'],
+  ['Arjun K.', 'Samsung Galaxy S21', 5, 'Charging port was loose. Works perfectly now. Polite staff and a tidy workshop.'],
+  ['Sneha R.', 'iPad', 5, 'Screen replaced neatly. The touch response is just as before.'],
+  ['Mohammed F.', 'Dell laptop', 4, 'Keyboard replacement done properly. Took a little longer than I expected but the result is good.'],
+  ['Divya N.', 'iPhone 12', 5, 'Battery health was poor, now it lasts the whole day. Quote was clear from the start.'],
+  ['Karthik P.', 'OnePlus 9', 5, 'Speaker had gone silent. Fixed and tested in front of me.'],
+  ['Ananya B.', 'Apple Watch', 5, 'Replaced the screen on my watch. Looks like new.'],
+  ['Vikram J.', 'HP laptop', 5, 'Laptop was overheating. They cleaned and repaired the fan, and it runs quiet now.'],
+  ['Meera T.', 'iPhone 11', 4, 'Good work on the camera repair. Photos are sharp again.'],
+  ['Suresh G.', 'MacBook Pro', 5, 'Honest advice about what needed fixing and what did not. Appreciated that.'],
+  ['Fatima A.', 'Redmi Note', 5, 'Dropped my phone in water and they managed to save it. Very relieved.'],
+  ['Nikhil D.', 'iPhone 14', 5, 'Easy booking and quick replies on WhatsApp. Phone came back working perfectly.'],
+  ['Lakshmi V.', 'Lenovo laptop', 5, 'Software problems sorted and the laptop is fast again.'],
+  ['Aditya C.', 'Google Pixel', 4, 'Battery replaced without fuss. Would recommend.'],
+  ['Pooja H.', 'iPad Air', 5, 'Charging issue fixed the same visit. Friendly and professional.'],
+  ['Imran Q.', 'Samsung Galaxy A52', 5, 'Screen looks perfect. Price matched the quote exactly.'],
+  ['Revathi S.', 'MacBook Air', 5, 'Trackpad replaced and it feels great. Careful and clean work.'],
+  ['Harish L.', 'iPhone XR', 5, 'Face ID and screen both working after the repair. Very happy.'],
+  ['Neha W.', 'Asus laptop', 4, 'Hinge repaired nicely. Good communication throughout.'],
+  ['Sandeep R.', 'iPhone 13 Pro', 5, 'Back glass replaced and you cannot tell it was ever broken.'],
+  ['Kavya M.', 'Samsung tablet', 5, 'Tablet would not charge. Now it works like new.'],
+  ['Rohit B.', 'OnePlus Nord', 5, 'Fast diagnosis and a fair price. Will come again.'],
+  ['Anjali P.', 'Acer laptop', 5, 'Replaced my SSD and moved my files safely. Great service.'],
+];
