@@ -10,6 +10,10 @@ export function validateRepair(values) {
   if (!productsForDevice(values.category).includes(values.product)) errors.product = 'Choose a product for your device type';
   if (!['iphone', 'android', 'macbook', 'windows', 'tablet', 'watch'].includes(values.category)) errors.category = 'Choose a device type';
   if (!issuesForDevice(values.category).some((issue) => issue.name === values.issue)) errors.issue = 'Choose an issue for your device';
+  if (values.issue === 'Something else') {
+    const details = typeof values.issueDetails === 'string' ? values.issueDetails.trim() : '';
+    if (details.length < 5 || details.length > 1000) errors.issueDetails = 'Describe the problem in 5 to 1000 characters';
+  }
   if (!normalizeIndianPhone(values.phone)) errors.phone = 'Enter a 10-digit Indian mobile number starting with 6–9, optionally with +91';
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email.trim()) || values.email.trim().length > 254) errors.email = 'Enter a valid email address';
   return errors;

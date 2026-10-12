@@ -9,7 +9,7 @@ import { productsForDevice } from '../../../shared/devices.mjs';
 
 export default function QuoteForm() {
   const { state } = useLocation();
-  const [values, setValues] = useState(() => ({ name: '', product: productsForDevice(state?.category).includes(state?.model) ? state.model : '', phone: '', category: state?.category || '', issue: issuesForDevice(state?.category).some((issue) => issue.name === state?.issue) ? state.issue : '', email: '' }));
+  const [values, setValues] = useState(() => ({ name: '', product: productsForDevice(state?.category).includes(state?.model) ? state.model : '', phone: '', category: state?.category || '', issue: issuesForDevice(state?.category).some((issue) => issue.name === state?.issue) ? state.issue : '', email: '', issueDetails: '' }));
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState('idle');
   const [message, setMessage] = useState('');
@@ -20,7 +20,7 @@ export default function QuoteForm() {
       ...(key === 'category' && !issuesForDevice(value).some((issue) => issue.name === previous.issue) ? { issue: '' } : {}),
       ...(key === 'category' && !productsForDevice(value).includes(previous.product) ? { product: '' } : {}),
     }));
-    setErrors((previous) => ({ ...previous, [key]: undefined, ...(key === 'category' ? { issue: undefined, product: undefined } : {}) }));
+    setErrors((previous) => ({ ...previous, [key]: undefined, ...(key === 'category' ? { issue: undefined, product: undefined } : {}), ...(key === 'issue' || key === 'category' ? { issueDetails: undefined } : {}) }));
   };
   const submit = async (event) => {
     event.preventDefault();
@@ -33,7 +33,7 @@ export default function QuoteForm() {
     }
     setStatus('loading'); setMessage('');
     try {
-      await submitRepair({ ...values, phone: normalizeIndianPhone(values.phone) });
+      await submitRepair({ ...values, phone: normalizeIndianPhone(values.phone), issueDetails: values.issue === 'Something else' ? values.issueDetails.trim() : '' });
       setStatus('success');
     } catch (error) {
       setStatus('error'); setMessage(error.message || 'Unable to send your request. Please try again.');
@@ -55,6 +55,7 @@ export default function QuoteForm() {
         <label className="field">Phone number<input {...inputProps('phone')} type="tel" autoComplete="tel" maxLength={24} placeholder="98765 43210" /><span className="booking-hint" id="booking-phone-hint">Indian mobile number · +91 is optional</span>{error('phone')}</label>
         <label className="field booking-full">Email address<input {...inputProps('email')} type="email" autoComplete="email" maxLength={254} placeholder="you@example.com" />{error('email')}</label>
         <label className="field booking-full">Issue<select {...inputProps('issue')}><option value="">Choose an issue</option>{issuesForDevice(values.category).map((issue) => <option key={issue.name} value={issue.name}>{issue.label || issue.name}</option>)}</select>{error('issue')}</label>
+        {values.issue === 'Something else' && <label className="field booking-full">Describe the problem<textarea {...inputProps('issueDetails')} rows={4} minLength={5} maxLength={1000} placeholder="Tell us what’s happening with your device…" />{error('issueDetails')}</label>}
       </div>
     </fieldset>
     {status === 'error' && <p className="err banner" role="alert">{message}</p>}
